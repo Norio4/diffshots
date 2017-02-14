@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Norio-YHT
+function error
+{
+   echo "$@" 1>&2
+}
+
+sudo yum install -y git
+sudo yum install -y ImageMagick-devel
+sudo yum install -y ImageMagick
+sudo yum install -y firefox
+sudo yum install -y ipa-gothic-fonts
+sudo yum install -y ruby-devel
+sudo yum install -y xorg-x11-server-Xvfb
+sudo yum install -y epel-release
+sudo yum install -y nodejs --enablerepo=epel
+sudo firewall-cmd --add-port=1994/tcp --zone=public --permanent
+sudo firewall-cmd --reload
+echo -e "{
+  \"name\": \"DiffShots-node\",
+  \"version\": \"0.0.1\",
+  \"license\": \"MIT\",
+  \"scripts\": {
+    \"start\": \"node app\"
+  },
+  \"author\": \"Norio YHT\",
+  \"dependencies\": {
+    \"express\": \"*\",
+    \"jade\": \"*\"
+  }
+}" > package.json
+npm install
+echo export DISPLAY=:1 >> ~/.bash_profile
+shopt -s expand_aliases
+source ~/.bash_profile
+echo -e "
+var express = require('express');
+var app = express();
+var fs = require('fs');
+app.set('view engine', 'jade');
+app.set('views', __dirname + '/views');
+
+app.use('/static', express.static('public'));
+
+app.get('/diff', function (req, res) {
+    var p = req.query.diff
+    var ps = p
+    console.log(p);
+    var filepath = 'public/images/' + p + '/diffs';
+    var stat = fs.statSync(filepath);
+    if (!stat) {
+
+    } else if (stat.isDirectory()) {
+        try {
+            var files = fs.readdirSync(filepath);
+            console.log(files);
+        } catch (e1) {
+            console.error('Directory ' + filepath + ' is unreadable.');
+        }
+    } else if (stat.isFile()) {
+        if (callback) {
+            callback.call(this, filepath, rootPath);
+        }
+    } else {
+        console.error(filepath + ' is not file or directory');
+    }
+
+    res.render('index', { title: 'DiffShots', images: files, ps: ps });
+
+});
+
+app.listen(1994, function () {
+  console.log('Example app listening on port 1994!');
+});
+" > app.js
+mkdir views
+echo -e "
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    title= title
+  body
+    h1= title
+    p Welcome to #{title}
+    ul
+      -for(var file in images){
+        li
+          a(href=\"../static/images/#{ps}/diffs/\"+images[file]) \"diffs/#{images[file]}\"
+      -}
+    div(text-align: center;)
+      ul
+        -for(var file in images){
+          li
+            img(src=\"../static/images/#{ps}/diffs/\"+images[file])
+        -}
+" > views/index.jade
+#. ~/.bash_profile
+#VAR=`echo $SHELL`
+#if [[ $VAR = "/bin/bash" ]] ; then
+#  . ~/.bash_profile
+#else
+#  source ~/.bash_profile 
+#fi
+
+#. ~/.bash_profile || error "Failed source ~/.bash_profile. Please do that before start DiffShots"
+
+Xvfb :1 -screen 0 1024x768x24 &
+
+gem install selenium-webdriver -v 2.53.4
+gem install rmagick
+echo -e "\"origin\":\n  \"urls\":\n     - \"http://google.co.jp/\"\n     - \"https://ja.wikipedia.org/wiki/Ruby\"\n\n\"comparison\":\n \"urls\":\n    - \"http://yahoo.co.jp/\"\n    - \"https://ja.wikipedia.org/wiki/Python\"\n" > sample_url.yml
+
+echo -e "\n\n\n\n\n\n"
+echo -e "all done!!!!!\n\n\n"
+echo -e "usage: \n\nruby diff_shots.rb -f sample_url.yml\n"
+echo -e "\nnode app.js\n    then access with browser 'http://127.0.0.1:1994/diff?diff=sample_url'\n\n"
+echo -e "any help?? \n\nruby diff_shots.rb -h\n\n\n"

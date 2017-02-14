@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Norio4 Yahata
+function error
+{
+   echo "$@" 1>&2
+}
+
+sudo yum install -y git
+sudo yum install -y ImageMagick-devel
+sudo yum install -y ImageMagick
+sudo yum install -y firefox
+sudo yum install -y ipa-gothic-fonts
+sudo yum install -y ruby-devel
+sudo yum install -y xorg-x11-server-Xvfb
+
+echo export DISPLAY=:1 >> ~/.bash_profile
+shopt -s expand_aliases
+source ~/.bash_profile
+#. ~/.bash_profile
+#VAR=`echo $SHELL`
+#if [[ $VAR = "/bin/bash" ]] ; then
+#  . ~/.bash_profile
+#else
+#  source ~/.bash_profile 
+#fi
+
+#. ~/.bash_profile || error "Failed source ~/.bash_profile. Please do that before start DiffShots"
+
+Xvfb :1 -screen 0 1024x768x24 &
+
+gem install selenium-webdriver -v 2.53.4
+gem install rmagick
+echo -e "\"origin\":\n  \"urls\":\n     - \"http://google.co.jp/\"\n     - \"https://ja.wikipedia.org/wiki/Ruby\"\n\n\"comparison\":\n \"urls\":\n    - \"http://yahoo.co.jp/\"\n    - \"https://ja.wikipedia.org/wiki/Python\"\n" > sample_url.yml
+
+echo -e "\n\n\n\n\n\n"
+echo -e "all done!!!!!\n\n\n"
+echo -e "usage: \n\nruby diff_shots.rb -f sample_url.yml\n\n"
+echo -e "any help?? \n\nruby diff_shots.rb -h\n\n\n"
